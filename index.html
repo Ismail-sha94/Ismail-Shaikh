@@ -1,0 +1,560 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f6f8fc">
+<title>Daily To-Do — Ismail Shaikh</title>
+<style>
+:root {
+  color-scheme: light;
+  --primary: #1f6feb;
+  --primary-soft: #eaf1ff;
+  --background: #f6f8fc;
+  --surface: #ffffff;
+  --text: #182235;
+  --muted: #667085;
+  --border: #e3e8f1;
+  --success: #158652;
+  --success-soft: #e8f7ef;
+  --warning: #a45b00;
+  --warning-soft: #fff4df;
+  --danger: #c22645;
+  --danger-soft: #fff0f2;
+  --shadow: 0 6px 24px rgba(15, 23, 42, .055);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --primary: #78aaff;
+  --primary-soft: #1b2d4c;
+  --background: #0b1220;
+  --surface: #111b2e;
+  --text: #e7eef9;
+  --muted: #a1aec2;
+  --border: #25324a;
+  --success: #64d49a;
+  --success-soft: #173427;
+  --warning: #ffc367;
+  --warning-soft: #3b2d16;
+  --danger: #ff8298;
+  --danger-soft: #3b2029;
+  --shadow: 0 6px 24px rgba(0, 0, 0, .18);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--text);
+  font: 15px/1.5 Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--primary) 45%, transparent);
+  outline-offset: 2px;
+}
+.app { width: min(1100px, calc(100% - 32px)); margin: 24px auto 36px; }
+header, .card, .tabs, .record, .empty, .filter-panel {
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+header {
+  padding: 22px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+.identity { display: flex; align-items: center; gap: 15px; min-width: 0; }
+.logo {
+  width: 52px; height: 52px; flex: 0 0 52px;
+  display: grid; place-items: center;
+  border-radius: 16px; background: var(--primary); color: white;
+  font-size: 27px; font-weight: 800;
+}
+h1, h2, h3, p { margin-top: 0; }
+h1 { font-size: 25px; line-height: 1.2; margin-bottom: 5px; }
+.identity p { color: var(--muted); margin: 0; }
+.header-actions { display: flex; gap: 10px; align-items: center; }
+button, .button {
+  border: 0; border-radius: 12px; padding: 10px 14px;
+  background: var(--primary); color: #fff; font-weight: 650;
+}
+button.secondary { color: var(--text); background: var(--background); border: 1px solid var(--border); }
+button.ghost { color: var(--muted); background: transparent; padding: 7px 9px; }
+button.danger { background: var(--danger-soft); color: var(--danger); }
+button.small { font-size: 13px; padding: 7px 10px; border-radius: 9px; }
+button:hover { filter: brightness(.97); }
+.clock {
+  margin-top: 18px;
+  display: grid; grid-template-columns: 1fr auto; gap: 14px;
+  align-items: center; padding: 18px 20px;
+}
+.clock-label { font-weight: 700; font-size: 16px; }
+.clock-note, .muted { color: var(--muted); }
+.clock-note { margin: 3px 0 0; }
+.timebox { text-align: right; }
+.time { font-size: 25px; line-height: 1.2; font-weight: 750; font-variant-numeric: tabular-nums; }
+.date { color: var(--muted); margin-top: 3px; }
+.badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  border-radius: 999px; padding: 5px 10px; font-size: 12px; font-weight: 700;
+  background: var(--background); color: var(--muted); border: 1px solid var(--border);
+}
+.badge.office { background: var(--success-soft); color: var(--success); border-color: transparent; }
+.badge.boss { background: var(--warning-soft); color: var(--warning); border-color: var(--warning); }
+.badge.high { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+.badge.done { background: var(--success-soft); color: var(--success); border-color: transparent; }
+.tabs {
+  display: flex; gap: 4px; padding: 7px; margin-top: 18px;
+  overflow-x: auto; scrollbar-width: thin;
+}
+.tab {
+  white-space: nowrap; flex: 1 0 auto; border-radius: 12px; padding: 12px 15px;
+  background: transparent; color: var(--muted); font-weight: 700;
+}
+.tab.active { background: var(--primary-soft); color: var(--primary); }
+main { margin-top: 22px; }
+.section-head {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 14px;
+  margin-bottom: 16px;
+}
+.section-head h2 { font-size: 22px; margin: 0 0 3px; }
+.section-head p { color: var(--muted); margin: 0; }
+.filters, .form-grid { display: grid; gap: 12px; }
+.filters { grid-template-columns: minmax(180px, 1fr) 180px 160px auto; margin: 14px 0; }
+.filter-panel { padding: 14px; box-shadow: none; }
+input, textarea, select {
+  color: var(--text); background: var(--surface);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px 12px; width: 100%;
+}
+textarea { resize: vertical; min-height: 85px; }
+label { display: block; font-size: 13px; font-weight: 650; margin-bottom: 5px; }
+.list { display: grid; gap: 11px; }
+.record { padding: 16px; box-shadow: none; }
+.record-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; }
+.record h3 { font-size: 16px; margin: 0 0 5px; overflow-wrap: anywhere; }
+.record p { margin: 6px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.record-meta { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; color: var(--muted); font-size: 13px; }
+.actions { display: flex; gap: 3px; flex-shrink: 0; }
+.checkline { display: flex; gap: 10px; align-items: flex-start; }
+.checkline input { width: 19px; height: 19px; accent-color: var(--primary); margin: 2px 0 0; }
+.completed h3 { color: var(--muted); text-decoration: line-through; }
+.empty {
+  text-align: center; padding: 34px 18px; border-style: dashed; box-shadow: none;
+}
+.empty-icon { color: var(--primary); font-size: 28px; margin-bottom: 6px; }
+.empty h3 { margin: 0 0 5px; font-size: 18px; }
+.empty p { color: var(--muted); margin: 0; }
+.currency-panel { padding: 14px 16px; margin-bottom: 12px; }
+.currency-panel strong { color: var(--primary); }
+.inline-convert { color: var(--muted); font-size: 13px; }
+.agenda { padding-left: 21px; margin: 8px 0; }
+.agenda li { padding: 2px 0; }
+.history-item { border-left: 3px solid var(--primary); padding-left: 12px; }
+.history-item h3 { margin: 0; }
+.history-time { color: var(--muted); font-size: 12px; margin-top: 3px; }
+footer { text-align: center; color: var(--muted); font-size: 13px; padding: 22px 8px 0; }
+dialog {
+  width: min(540px, calc(100% - 24px)); max-height: 90vh; overflow: auto;
+  border: 1px solid var(--border); border-radius: 18px; padding: 0;
+  background: var(--surface); color: var(--text); box-shadow: 0 24px 70px #0004;
+}
+dialog::backdrop { background: rgba(10, 18, 32, .55); }
+.modal-inner { padding: 21px; }
+.modal-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+.modal-head h2 { font-size: 20px; margin: 0 0 16px; }
+.modal-close { color: var(--muted); background: transparent; padding: 3px 8px; font-size: 23px; }
+.form-grid { grid-template-columns: 1fr 1fr; }
+.field.full { grid-column: 1 / -1; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 18px; }
+.agenda-editor { display: grid; gap: 8px; }
+.agenda-row { display: flex; gap: 8px; align-items: center; }
+.agenda-row input { flex: 1; }
+.toast {
+  position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+  background: var(--text); color: var(--surface); border-radius: 10px;
+  padding: 10px 15px; z-index: 5; display: none; box-shadow: var(--shadow);
+}
+@media (max-width: 700px) {
+  .app { width: min(100% - 20px, 600px); margin: 10px auto 24px; }
+  header { padding: 16px; align-items: flex-start; }
+  .logo { width: 44px; height: 44px; flex-basis: 44px; border-radius: 13px; }
+  h1 { font-size: 21px; }
+  .identity p { font-size: 13px; }
+  .header-actions { gap: 5px; }
+  .clock { padding: 15px; grid-template-columns: 1fr; }
+  .timebox { text-align: left; }
+  .time { font-size: 22px; }
+  .tabs { margin-top: 12px; }
+  .tab { padding: 10px 12px; }
+  .filters { grid-template-columns: 1fr 1fr; }
+  .filters input[type="search"] { grid-column: 1 / -1; }
+  .section-head { align-items: center; }
+  .section-head h2 { font-size: 20px; }
+}
+@media (max-width: 430px) {
+  .identity { gap: 10px; }
+  header { gap: 8px; }
+  .header-actions button { padding: 9px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .field.full { grid-column: auto; }
+  .filters { grid-template-columns: 1fr; }
+  .filters input[type="search"] { grid-column: auto; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="identity">
+      <div class="logo" aria-hidden="true">✓</div>
+      <div>
+        <h1>Daily To-Do</h1>
+        <p>Ismail Shaikh · Head of Operations · iO Kitchens, Muscat</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="secondary" id="themeToggle" type="button" aria-label="Switch theme">🌙</button>
+    </div>
+  </header>
+
+  <section class="card clock" aria-label="Muscat time and work schedule">
+    <div>
+      <div class="clock-label" id="scheduleStatus">Checking schedule…</div>
+      <p class="clock-note">Office hours 10:00–18:00 · Boss call 17:30–18:00</p>
+      <div class="badges" id="scheduleBadges"></div>
+    </div>
+    <div class="timebox">
+      <div class="time" id="clockTime">--:--:--</div>
+      <div class="date" id="clockDate">Muscat, UTC+4</div>
+    </div>
+  </section>
+
+  <nav class="tabs" aria-label="Main sections">
+    <button class="tab active" data-tab="tasks" type="button">Tasks</button>
+    <button class="tab" data-tab="payments" type="button">Payments &amp; Invoices</button>
+    <button class="tab" data-tab="salary" type="button">Salary Queries</button>
+    <button class="tab" data-tab="meetings" type="button">Meeting Minutes</button>
+    <button class="tab" data-tab="history" type="button">History</button>
+  </nav>
+  <main id="main"></main>
+  <footer>Daily To-Do · Data is stored only in this browser/device and will not sync across devices.</footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<dialog id="editorDialog"><div class="modal-inner" id="editorContent"></div></dialog>
+
+<script>
+(function () {
+  "use strict";
+  const keys = {
+    theme: "dtodo.theme", tasks: "dtodo.tasks", payments: "dtodo.payments",
+    salary: "dtodo.salaryQueries", meetings: "dtodo.meetings", history: "dtodo.history"
+  };
+  const safeRead = (key, fallback) => {
+    try {
+      const value = JSON.parse(localStorage.getItem(key));
+      return Array.isArray(fallback) ? (Array.isArray(value) ? value : fallback) : (value ?? fallback);
+    } catch (_) { return fallback; }
+  };
+  const state = {
+    theme: safeRead(keys.theme, "light"),
+    tasks: safeRead(keys.tasks, []),
+    payments: safeRead(keys.payments, []),
+    salary: safeRead(keys.salary, []),
+    meetings: safeRead(keys.meetings, []),
+    history: safeRead(keys.history, [])
+  };
+  let activeTab = "tasks";
+  let toastTimer;
+  const main = document.getElementById("main");
+  const dialog = document.getElementById("editorDialog");
+  const modal = document.getElementById("editorContent");
+  const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  })[char]);
+  const id = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
+  const now = () => new Date().toISOString();
+  const persist = key => {
+    try { localStorage.setItem(keys[key], JSON.stringify(state[key])); }
+    catch (_) { notify("Could not save: browser storage may be full or disabled."); }
+  };
+  function notify(message) {
+    const element = document.getElementById("toast");
+    element.textContent = message; element.style.display = "block";
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => element.style.display = "none", 2600);
+  }
+  function logHistory(entity, action, label) {
+    state.history.unshift({ id: id(), entity, action, label, at: now() });
+    state.history = state.history.slice(0, 200);
+    persist("history");
+  }
+  function themeApply() {
+    document.documentElement.dataset.theme = state.theme === "dark" ? "dark" : "light";
+    document.getElementById("themeToggle").textContent = state.theme === "dark" ? "☀️" : "🌙";
+    document.getElementById("themeToggle").setAttribute("aria-label", state.theme === "dark" ? "Switch to light mode" : "Switch to dark mode");
+  }
+  document.getElementById("themeToggle").addEventListener("click", () => {
+    state.theme = state.theme === "dark" ? "light" : "dark";
+    try { localStorage.setItem(keys.theme, JSON.stringify(state.theme)); } catch (_) {}
+    themeApply();
+  });
+  function updateClock() {
+    const current = new Date();
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Muscat", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
+    }).formatToParts(current);
+    const get = type => Number(parts.find(part => part.type === type)?.value || 0);
+    const hour = get("hour"), minute = get("minute"), minuteOfDay = hour * 60 + minute;
+    document.getElementById("clockTime").textContent = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Muscat", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true
+    }).format(current);
+    document.getElementById("clockDate").textContent = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Muscat", weekday: "short", day: "2-digit", month: "short", year: "numeric"
+    }).format(current) + " · Muscat, UTC+4";
+    const status = document.getElementById("scheduleStatus");
+    const badges = document.getElementById("scheduleBadges");
+    if (minuteOfDay >= 1050 && minuteOfDay < 1080) {
+      status.textContent = "Boss call in progress";
+      badges.innerHTML = '<span class="badge boss">★ Boss call · 17:30–18:00</span><span class="badge office">Office hours</span>';
+    } else if (minuteOfDay >= 600 && minuteOfDay < 1080) {
+      status.textContent = "Within office hours";
+      badges.innerHTML = '<span class="badge office">Office · 10:00–18:00</span><span class="badge">Boss call · 17:30–18:00</span>';
+    } else {
+      status.textContent = "Outside office hours";
+      badges.innerHTML = '<span class="badge">Office · 10:00–18:00</span><span class="badge">Boss call · 17:30–18:00</span>';
+    }
+  }
+  function dateText(value) {
+    if (!value) return "";
+    const date = new Date(value.length === 10 ? value + "T12:00:00" : value);
+    return isNaN(date) ? value : new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(date);
+  }
+  function empty(title, message, icon) {
+    return '<div class="empty"><div class="empty-icon">' + (icon || "✓") + '</div><h3>' + escapeHtml(title) + '</h3><p>' + escapeHtml(message) + '</p></div>';
+  }
+  function head(title, description, buttonLabel, buttonAction) {
+    return '<div class="section-head"><div><h2>' + title + '</h2><p>' + description + '</p></div>' +
+      (buttonLabel ? '<button type="button" data-action="' + buttonAction + '">' + buttonLabel + '</button>' : '') + '</div>';
+  }
+  function actions(type, recordId) {
+    return '<div class="actions"><button class="ghost small" type="button" data-action="edit" data-type="' + type + '" data-id="' + escapeHtml(recordId) + '">Edit</button>' +
+      '<button class="ghost small" type="button" data-action="delete" data-type="' + type + '" data-id="' + escapeHtml(recordId) + '">Delete</button></div>';
+  }
+  function renderTasks() {
+    const search = document.getElementById("taskSearch")?.value.toLowerCase() || "";
+    const priority = document.getElementById("taskPriority")?.value || "All";
+    const status = document.getElementById("taskStatus")?.value || "All";
+    const filtered = state.tasks.filter(task => {
+      const text = (task.title + " " + (task.notes || "")).toLowerCase();
+      return text.includes(search) && (priority === "All" || task.priority === priority) &&
+        (status === "All" || (status === "Active" ? !task.completed : task.completed));
+    }).sort((a,b) => Number(a.completed) - Number(b.completed) || (a.dueDate || "9999").localeCompare(b.dueDate || "9999"));
+    main.innerHTML = head("Tasks", "Keep today’s priorities in view.", "+ Add task", "add-task") +
+      '<div class="filters"><input id="taskSearch" type="search" placeholder="Search tasks and notes" aria-label="Search tasks">' +
+      '<select id="taskPriority" aria-label="Filter by priority"><option>All</option><option>High</option><option>Medium</option><option>Low</option></select>' +
+      '<select id="taskStatus" aria-label="Filter by status"><option>All</option><option>Active</option><option>Completed</option></select>' +
+      '<button class="secondary small" type="button" data-action="clear-completed">Clear completed</button></div>' +
+      (filtered.length ? '<div class="list">' + filtered.map(task =>
+        '<article class="record ' + (task.completed ? "completed" : "") + '"><div class="record-top"><div class="checkline">' +
+        '<input type="checkbox" aria-label="Mark task complete" data-action="toggle-task" data-id="' + escapeHtml(task.id) + '" ' + (task.completed ? "checked" : "") + '>' +
+        '<div><h3>' + escapeHtml(task.title) + '</h3><div class="record-meta">' +
+        '<span class="badge ' + (task.priority === "High" ? "high" : "") + '">' + escapeHtml(task.priority || "Medium") + '</span>' +
+        (task.dueDate ? '<span>Due ' + escapeHtml(dateText(task.dueDate)) + '</span>' : '') +
+        (task.completed ? '<span class="badge done">Completed</span>' : '') + '</div>' +
+        (task.notes ? '<p>' + escapeHtml(task.notes) + '</p>' : '') + '</div></div>' + actions("tasks", task.id) + '</div></article>'
+      ).join("") + '</div>' : empty(search || priority !== "All" || status !== "All" ? "No matching tasks" : "All clear",
+        search || priority !== "All" || status !== "All" ? "Try changing your search or filters." : "Add a task to start organizing your work.", "✓"));
+    document.getElementById("taskSearch").value = search;
+    document.getElementById("taskPriority").value = priority;
+    document.getElementById("taskStatus").value = status;
+    document.getElementById("taskSearch").addEventListener("input", renderTasks);
+    document.getElementById("taskPriority").addEventListener("change", renderTasks);
+    document.getElementById("taskStatus").addEventListener("change", renderTasks);
+  }
+  function renderPayments() {
+    main.innerHTML = head("Payments &amp; Invoices", "Track records and view the fixed OMR/USD conversion.", "+ Add record", "add-payment") +
+      '<div class="card currency-panel"><strong>Currency reference</strong><div class="muted">1 OMR = 2.6008 USD</div></div>' +
+      (state.payments.length ? '<div class="list">' + state.payments.slice().sort((a,b) => (b.createdAt || "").localeCompare(a.createdAt || "")).map(item => {
+        const amount = Number(item.amount) || 0;
+        const converted = item.currency === "OMR" ? (amount * 2.6008).toFixed(2) + " USD" : (amount / 2.6008).toFixed(3) + " OMR";
+        return '<article class="record"><div class="record-top"><div><h3>' + escapeHtml(item.type) + (item.counterparty ? " · " + escapeHtml(item.counterparty) : "") + '</h3>' +
+          '<div class="record-meta"><strong>' + amount.toFixed(2) + " " + escapeHtml(item.currency) + '</strong><span>≈ ' + converted + '</span>' +
+          (item.status ? '<span class="badge">' + escapeHtml(item.status) + '</span>' : '') + '</div>' +
+          (item.description ? '<p>' + escapeHtml(item.description) + '</p>' : '') + '</div>' + actions("payments", item.id) + '</div></article>';
+      }).join("") + '</div>' : empty("No payments or invoices yet.", "Add a record to begin tracking payments and invoices.", "¤"));
+  }
+  function renderSalary() {
+    const query = document.getElementById("salarySearch")?.value || "";
+    const filtered = state.salary.filter(item => (item.subject + " " + (item.details || "")).toLowerCase().includes(query.toLowerCase()));
+    main.innerHTML = head("Salary Queries", "Keep salary-related questions and follow-ups organized.", "+ Add query", "add-salary") +
+      '<div class="filters" style="grid-template-columns:1fr"><input id="salarySearch" type="search" placeholder="Search queries and details" aria-label="Search salary queries"></div>' +
+      (filtered.length ? '<div class="list">' + filtered.map(item => '<article class="record"><div class="record-top"><div><h3>' + escapeHtml(item.subject) +
+        '</h3><div class="record-meta"><span class="badge">' + escapeHtml(item.status || "Open") + '</span>' +
+        (item.referenceDate ? '<span>' + escapeHtml(dateText(item.referenceDate)) + '</span>' : '') + '</div>' +
+        (item.details ? '<p>' + escapeHtml(item.details) + '</p>' : '') + '</div>' + actions("salary", item.id) + '</div></article>').join("") +
+        '</div>' : empty("No salary queries yet.", "Add a salary query to keep track.", "＋"));
+    document.getElementById("salarySearch").value = query;
+    document.getElementById("salarySearch").addEventListener("input", renderSalary);
+  }
+  function renderMeetings() {
+    main.innerHTML = head("Meeting Minutes", "Capture meeting agendas, discussions, and decisions point by point.", "+ Add meeting", "add-meeting") +
+      (state.meetings.length ? '<div class="list">' + state.meetings.slice().sort((a,b) => (b.meetingDate || "").localeCompare(a.meetingDate || "")).map(item =>
+        '<article class="record"><div class="record-top"><div><h3>' + escapeHtml(item.title) + '</h3><div class="record-meta">' +
+        (item.meetingDate ? '<span>' + escapeHtml(dateText(item.meetingDate)) + '</span>' : '') +
+        '<span>' + (item.agendaPoints || []).filter(Boolean).length + ' agenda point(s)</span></div>' +
+        ((item.agendaPoints || []).filter(Boolean).length ? '<ol class="agenda">' + item.agendaPoints.filter(Boolean).map(point => '<li>' + escapeHtml(point) + '</li>').join("") + '</ol>' : '') +
+        (item.minutes ? '<p><strong>Minutes:</strong> ' + escapeHtml(item.minutes) + '</p>' : '') + '</div>' + actions("meetings", item.id) + '</div></article>'
+      ).join("") + '</div>' : empty("No meeting minutes yet.", "Create meeting minutes to capture decisions and action items.", "▤"));
+  }
+  function renderHistory() {
+    main.innerHTML = head("History", "Recent changes saved in this browser.", "", "") +
+      (state.history.length ? '<div class="list">' + state.history.map(item => '<article class="record history-item"><h3>' +
+        escapeHtml(item.action) + " · " + escapeHtml(item.entity) + '</h3><div>' + escapeHtml(item.label || "") +
+        '</div><div class="history-time">' + escapeHtml(new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(item.at))) +
+        '</div></article>').join("") + '</div>' : empty("No activity yet.", "Your activity history will appear here.", "◷"));
+  }
+  function render() {
+    document.querySelectorAll(".tab").forEach(tab => tab.classList.toggle("active", tab.dataset.tab === activeTab));
+    if (activeTab === "tasks") renderTasks();
+    if (activeTab === "payments") renderPayments();
+    if (activeTab === "salary") renderSalary();
+    if (activeTab === "meetings") renderMeetings();
+    if (activeTab === "history") renderHistory();
+  }
+  document.querySelector(".tabs").addEventListener("click", event => {
+    const button = event.target.closest("[data-tab]");
+    if (button) { activeTab = button.dataset.tab; render(); }
+  });
+  function field(label, name, value, type, required, extra) {
+    return '<div class="field ' + (extra || "") + '"><label for="field-' + name + '">' + label + (required ? " *" : "") + '</label>' +
+      '<input id="field-' + name + '" name="' + name + '" type="' + (type || "text") + '" value="' + escapeHtml(value || "") + '"' +
+      (required ? " required" : "") + '></div>';
+  }
+  function textareaField(label, name, value, extra) {
+    return '<div class="field ' + (extra || "") + '"><label for="field-' + name + '">' + label + '</label><textarea id="field-' + name + '" name="' + name + '">' + escapeHtml(value || "") + '</textarea></div>';
+  }
+  function selectField(label, name, choices, selected, extra) {
+    return '<div class="field ' + (extra || "") + '"><label for="field-' + name + '">' + label + '</label><select id="field-' + name + '" name="' + name + '">' +
+      choices.map(choice => '<option ' + (choice === selected ? "selected" : "") + '>' + escapeHtml(choice) + '</option>').join("") + '</select></div>';
+  }
+  function openForm(type, record) {
+    const editing = Boolean(record);
+    const titles = { tasks: "task", payments: "payment or invoice", salary: "salary query", meetings: "meeting" };
+    let form = '<form id="recordForm"><div class="modal-head"><h2>' + (editing ? "Edit " : "Add ") + titles[type] + '</h2><button class="modal-close" type="button" data-action="close-modal" aria-label="Close">×</button></div><div class="form-grid">';
+    if (type === "tasks") {
+      form += field("Title", "title", record?.title, "text", true, "full") +
+        textareaField("Notes", "notes", record?.notes, "full") +
+        field("Due date", "dueDate", record?.dueDate, "date") +
+        selectField("Priority", "priority", ["Low", "Medium", "High"], record?.priority || "Medium");
+    } else if (type === "payments") {
+      form += selectField("Record type", "type", ["Invoice", "Payment"], record?.type || "Invoice") +
+        selectField("Currency", "currency", ["OMR", "USD"], record?.currency || "OMR") +
+        field("Amount", "amount", record?.amount, "number", true) +
+        field("Counterparty", "counterparty", record?.counterparty, "text") +
+        selectField("Status", "status", ["Pending", "Paid"], record?.status || "Pending") +
+        textareaField("Description", "description", record?.description, "full");
+    } else if (type === "salary") {
+      form += field("Subject", "subject", record?.subject, "text", true, "full") +
+        textareaField("Details", "details", record?.details, "full") +
+        selectField("Status", "status", ["Open", "In Progress", "Resolved"], record?.status || "Open") +
+        field("Reference date", "referenceDate", record?.referenceDate, "date");
+    } else if (type === "meetings") {
+      form += field("Meeting title", "title", record?.title, "text", true, "full") +
+        field("Meeting date", "meetingDate", record?.meetingDate, "date") +
+        '<div class="field full"><label>Agenda points</label><div class="agenda-editor" id="agendaEditor"></div>' +
+        '<button type="button" class="secondary small" data-action="add-agenda">+ Add agenda point</button></div>' +
+        textareaField("Minutes and decisions", "minutes", record?.minutes, "full");
+    }
+    form += '</div><div class="modal-actions"><button class="secondary" type="button" data-action="close-modal">Cancel</button>' +
+      '<button type="submit">' + (editing ? "Save changes" : "Save") + '</button></div></form>';
+    modal.innerHTML = form;
+    if (type === "meetings") {
+      const points = (record?.agendaPoints || []);
+      (points.length ? points : [""]).forEach(addAgendaRow);
+    }
+    const formElement = document.getElementById("recordForm");
+    formElement.addEventListener("submit", event => {
+      event.preventDefault();
+      if (!formElement.reportValidity()) return;
+      const data = Object.fromEntries(new FormData(formElement).entries());
+      if (type === "meetings") data.agendaPoints = [...document.querySelectorAll(".agenda-row input")].map(input => input.value.trim()).filter(Boolean);
+      if (type === "payments") data.amount = Number(data.amount);
+      const collection = state[type];
+      if (editing) {
+        const index = collection.findIndex(item => item.id === record.id);
+        if (index >= 0) collection[index] = { ...collection[index], ...data, updatedAt: now() };
+        logHistory(titles[type], "Updated", data.title || data.subject || data.counterparty || titles[type]);
+      } else {
+        collection.unshift({ id: id(), ...data, completed: false, createdAt: now(), updatedAt: now() });
+        logHistory(titles[type], "Added", data.title || data.subject || data.counterparty || titles[type]);
+      }
+      persist(type); dialog.close(); render(); notify(editing ? "Changes saved." : "Record added.");
+    });
+    dialog.showModal();
+  }
+  function addAgendaRow(value) {
+    const row = document.createElement("div");
+    row.className = "agenda-row";
+    row.innerHTML = '<input type="text" aria-label="Agenda point" placeholder="Agenda point" value="' + escapeHtml(value) + '">' +
+      '<button class="secondary small" type="button" data-action="remove-agenda" aria-label="Remove agenda point">Remove</button>';
+    document.getElementById("agendaEditor").appendChild(row);
+  }
+  const names = { tasks: "Task", payments: "Payment/invoice", salary: "Salary query", meetings: "Meeting" };
+  function removeRecord(type, recordId) {
+    const item = state[type].find(entry => entry.id === recordId);
+    if (!item) return;
+    const label = item.title || item.subject || item.counterparty || names[type];
+    if (!confirm("Delete this " + names[type].toLowerCase() + "?\n\n“" + label + "” will be removed from this browser.")) return;
+    state[type] = state[type].filter(entry => entry.id !== recordId);
+    persist(type); logHistory(names[type], "Deleted", label); render(); notify("Record deleted.");
+  }
+  function clearCompleted() {
+    const count = state.tasks.filter(task => task.completed).length;
+    if (!count) { notify("There are no completed tasks to clear."); return; }
+    if (!confirm("Clear " + count + " completed task(s)? This cannot be undone.")) return;
+    state.tasks = state.tasks.filter(task => !task.completed);
+    persist("tasks"); logHistory("Task", "Cleared", count + " completed task(s)"); render(); notify("Completed tasks cleared.");
+  }
+  document.addEventListener("click", event => {
+    const button = event.target.closest("[data-action]");
+    if (!button) return;
+    const action = button.dataset.action;
+    if (action === "add-task") openForm("tasks");
+    if (action === "add-payment") openForm("payments");
+    if (action === "add-salary") openForm("salary");
+    if (action === "add-meeting") openForm("meetings");
+    if (action === "close-modal") dialog.close();
+    if (action === "add-agenda") addAgendaRow("");
+    if (action === "remove-agenda") button.closest(".agenda-row").remove();
+    if (action === "edit") {
+      const record = state[button.dataset.type].find(item => item.id === button.dataset.id);
+      if (record) openForm(button.dataset.type, record);
+    }
+    if (action === "delete") removeRecord(button.dataset.type, button.dataset.id);
+    if (action === "clear-completed") clearCompleted();
+  });
+  document.addEventListener("change", event => {
+    const input = event.target.closest('[data-action="toggle-task"]');
+    if (!input) return;
+    const task = state.tasks.find(item => item.id === input.dataset.id);
+    if (!task) return;
+    task.completed = input.checked;
+    task.completedAt = input.checked ? now() : null;
+    task.updatedAt = now();
+    persist("tasks"); logHistory("Task", input.checked ? "Completed" : "Reopened", task.title); render();
+  });
+  themeApply();
+  updateClock();
+  setInterval(updateClock, 1000);
+  render();
+})();
+</script>
+</body>
+</html>
